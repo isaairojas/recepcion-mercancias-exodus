@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recepción de Mercancía – Exodus ERP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== TOOLBAR ===== -->
+<div class="toolbar">
+  <div class="toolbar-group">
+    <button class="tb-btn">
+      <span class="tb-icon-svg">
+        <svg viewBox="0 0 28 28" width="26" height="26"><rect x="3" y="7" width="22" height="16" rx="2" fill="#e8a020" stroke="#c07010" stroke-width="1.2"/><rect x="9" y="3" width="10" height="6" rx="1" fill="#c07010"/><line x1="14" y1="11" x2="14" y2="19" stroke="white" stroke-width="1.8"/><line x1="10" y1="15" x2="18" y2="15" stroke="white" stroke-width="1.8"/></svg>
+      </span>
+      <span>Recepción</span>
+      <span class="tb-arrow">▾</span>
+    </button>
+    <button class="tb-btn">
+      <span class="tb-icon-svg">
+        <svg viewBox="0 0 28 28" width="26" height="26"><rect x="2" y="9" width="10" height="10" rx="2" fill="#4a90c4" stroke="#2a6a9a" stroke-width="1.2"/><rect x="16" y="9" width="10" height="10" rx="2" fill="#27ae60" stroke="#1e8449" stroke-width="1.2"/><path d="M12 12.5 L16 14 L12 15.5" fill="none" stroke="#e74c3c" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 12.5 L12 14 L16 15.5" fill="none" stroke="#e74c3c" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </span>
+      <span>Traspasos</span>
+      <span class="tb-arrow">▾</span>
+    </button>
+    <button class="tb-btn">
+      <span class="tb-icon-svg">
+        <svg viewBox="0 0 28 28" width="26" height="26"><circle cx="12" cy="12" r="8" fill="none" stroke="#4a90c4" stroke-width="2"/><line x1="18" y1="18" x2="25" y2="25" stroke="#4a90c4" stroke-width="2.2" stroke-linecap="round"/><line x1="9" y1="12" x2="15" y2="12" stroke="#4a90c4" stroke-width="1.8"/><line x1="12" y1="9" x2="12" y2="15" stroke="#4a90c4" stroke-width="1.8"/></svg>
+      </span>
+      <span>Consultas</span>
+      <span class="tb-arrow">▾</span>
+    </button>
+    <button class="tb-btn">
+      <span class="tb-icon-svg">
+        <svg viewBox="0 0 28 28" width="26" height="26"><rect x="5" y="3" width="18" height="22" rx="2" fill="white" stroke="#888" stroke-width="1.2"/><line x1="8" y1="8" x2="20" y2="8" stroke="#e74c3c" stroke-width="1.8"/><line x1="8" y1="12" x2="20" y2="12" stroke="#bbb" stroke-width="1.2"/><line x1="8" y1="15" x2="16" y2="15" stroke="#bbb" stroke-width="1.2"/><rect x="14" y="18" width="2" height="5" fill="#27ae60"/><rect x="18" y="15" width="2" height="8" fill="#4a90c4"/><rect x="10" y="20" width="2" height="3" fill="#e74c3c"/></svg>
+      </span>
+      <span>Reportes</span>
+      <span class="tb-arrow">▾</span>
+    </button>
+  </div>
+</div>
+
+<!-- ===== DESKTOP BACKGROUND ===== -->
+<div class="desktop-bg">
+
+  <!-- ===== MAIN WINDOW ===== -->
+  <div class="window" id="mainWindow">
+
+    <!-- Window title bar -->
+    <div class="window-titlebar">
+      <span class="wt-icon">
+        <svg viewBox="0 0 16 16" width="14" height="14"><rect x="1" y="3" width="14" height="11" rx="1" fill="#e8a020"/><rect x="5" y="1" width="6" height="4" rx="1" fill="#c07010"/></svg>
+      </span>
+      <span class="wt-title">Recepción de mercancía</span>
+      <div class="wt-controls">
+        <button class="wt-btn wt-min" title="Minimizar">─</button>
+        <button class="wt-btn wt-max" title="Maximizar">□</button>
+        <button class="wt-btn wt-close" title="Cerrar" onclick="closeWindow()">✕</button>
+      </div>
+    </div>
+
+    <!-- Window body -->
+    <div class="window-body">
+
+      <!-- ── TOP BAR ── -->
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <label class="field-label">Código de barras:</label>
+          <input
+            type="text"
+            id="barcodeInput"
+            class="barcode-input"
+            value="000000000001394000"
+            placeholder="Escanee o ingrese código..."
+            onkeydown="handleBarcodeKey(event)"
+            autocomplete="off"
+          />
+        </div>
+        <div class="top-bar-center">
+          <label class="field-label">Tipo de recepción:</label>
+          <select id="tipoRecepcion" class="select-field">
+            <option value="parcial" selected>Recepción Parcial</option>
+            <option value="total">Recepción Total</option>
+          </select>
+        </div>
+        <div class="top-bar-right">
+          <div class="apymsa-logo">
+            <span class="logo-a">A</span><span class="logo-pymsa">PYMSA</span><span class="logo-dot">.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── INFO PANELS ── -->
+      <div class="info-panels">
+
+        <!-- Panel 1: Pedido -->
+        <div class="info-panel">
+          <div class="panel-title">Información del pedido</div>
+          <div class="panel-row">
+            <label>Número de pedido:</label>
+            <input type="text" class="panel-input" value="245896" readonly />
+          </div>
+          <div class="panel-row">
+            <label>Número de papeleta:</label>
+            <input type="text" class="panel-input" value="6541202" readonly />
+          </div>
+          <div class="panel-row">
+            <label>Tipo de pedido:</label>
+            <input type="text" class="panel-input" value="Reabastecimiento" readonly />
+          </div>
+          <div class="panel-row panel-row-check">
+            <label>Mercancía corporativa:</label>
+            <input type="checkbox" checked disabled class="panel-check" />
+          </div>
+        </div>
+
+        <!-- Panel 2: Packing List -->
+        <div class="info-panel">
+          <div class="panel-title">Información de packing List</div>
+          <div class="panel-row">
+            <label>No. de caja activa:</label>
+            <input type="text" class="panel-input panel-input-gray" value="No aplica" readonly />
+          </div>
+          <div class="panel-row">
+            <label>No. total de cajas:</label>
+            <input type="text" class="panel-input panel-input-gray" value="No aplica" readonly />
+          </div>
+          <div class="panel-row">
+            <label>Cajas faltantes:</label>
+            <input type="text" class="panel-input panel-input-gray" value="No aplica" readonly />
+          </div>
+        </div>
+
+        <!-- Panel 3: Producto escaneado -->
+        <div class="info-panel info-panel-wide">
+          <div class="panel-title">Información de producto escaneado</div>
+          <div class="panel-row">
+            <label>Código de barras:</label>
+            <input type="text" id="prodBarcode" class="panel-input panel-input-full" value="1394000" readonly />
+          </div>
+          <div class="panel-row">
+            <label>Descripción:</label>
+            <input type="text" id="prodDesc" class="panel-input panel-input-full" value="CINTA AISLANTE NEGRO 60 PIES PLASTICA VERZE 20 U/L" readonly />
+          </div>
+          <div class="panel-row">
+            <label>Localización de origen:</label>
+            <input type="text" id="prodLoc" class="panel-input panel-input-full" value="AL1 / CEDIS / 14-03-2024 / 10:54:00 A.M." readonly />
+          </div>
+          <div class="panel-row">
+            <label>Ubicación (PTN):</label>
+            <input type="text" id="prodPTN" class="panel-input panel-input-full" value="P1, T1, N1" readonly />
+          </div>
+        </div>
+
+        <!-- Product image -->
+        <div class="product-image-box">
+          <img id="prodImg" src="img/product_default.png" alt="Producto" class="product-img" />
+        </div>
+
+      </div>
+
+      <!-- ── DATA TABLE ── -->
+      <div class="table-wrapper">
+        <table id="productTable">
+          <thead>
+            <tr>
+              <th style="width:46px">No.</th>
+              <th>Producto</th>
+              <th style="width:155px">Código de producto SKU</th>
+              <th style="width:130px">Cantidad escaneada</th>
+              <th style="width:115px">Tipo de producto</th>
+              <th style="width:115px">Clave de posición</th>
+              <th style="width:115px">Incidencias</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── BOTTOM BAR ── -->
+      <div class="bottom-bar">
+        <div class="bottom-left">
+          <button class="btn-action" onclick="recepcionProveedor()" title="F6">
+            <svg class="btn-svg" viewBox="0 0 16 16"><rect x="1" y="3" width="14" height="10" rx="1" fill="#e8a020"/><rect x="4" y="1" width="8" height="3" rx="1" fill="#c07010"/></svg>
+            Recepción de proveedor (F6)
+          </button>
+          <button class="btn-action" onclick="imprimirEtiquetas()" title="F5">
+            <svg class="btn-svg" viewBox="0 0 16 16"><rect x="2" y="5" width="12" height="8" rx="1" fill="#555"/><rect x="4" y="2" width="8" height="4" rx="1" fill="#888"/><rect x="4" y="10" width="8" height="4" rx="0" fill="white" stroke="#ccc" stroke-width="0.5"/></svg>
+            Imprimir Etiquetas (F5)
+          </button>
+          <button class="btn-action" onclick="guardarAvance()" title="F9">
+            <svg class="btn-svg" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1" fill="#4a90c4"/><rect x="5" y="2" width="6" height="5" rx="0" fill="white"/><rect x="4" y="9" width="8" height="4" rx="0" fill="white"/></svg>
+            Guardar avance (F9)
+          </button>
+        </div>
+        <div class="bottom-right">
+          <button class="btn-finish" id="btnTerminar" onclick="terminarParcialidad()" title="F7">
+            <svg class="btn-svg" viewBox="0 0 16 16"><polyline points="2,8 6,12 14,4" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="btnTerminarLabel">Terminar Parcialidad (F7)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Status bar -->
+      <div class="status-bar" id="statusBar">
+        Último avance guardado: 14-03-2024 10:54:00 A.M. –
+        <span class="status-warning">Restan 24:00 horas para cierre automático de traspaso de pedido.</span>
+      </div>
+
+    </div><!-- /window-body -->
+  </div><!-- /window -->
+
+  <!-- Exodus watermark bottom right -->
+  <div class="exodus-watermark">
+    <svg viewBox="0 0 60 50" width="40" height="34" style="opacity:0.7">
+      <polygon points="30,2 58,48 30,36 2,48" fill="#e8a020"/>
+      <polygon points="30,10 52,44 30,32 8,44" fill="#c07010"/>
+    </svg>
+    <span class="exodus-wm-text">odus</span>
+  </div>
+
+</div><!-- /desktop-bg -->
+
+<!-- ===================================================
+     MODAL: INCIDENCIAS DETECTADAS
+     =================================================== -->
+<div class="modal-overlay" id="modalIncidencias" style="display:none">
+  <div class="modal-window modal-window-lg">
+    <div class="modal-titlebar">
+      <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="7" fill="#4a90c4"/><text x="8" y="12" text-anchor="middle" font-size="10" fill="white" font-weight="bold">i</text></svg>
+      <span>Información – Incidencias detectadas</span>
+    </div>
+    <div class="modal-body">
+      <div class="modal-alert">
+        <svg viewBox="0 0 20 20" width="18" height="18" style="flex-shrink:0"><circle cx="10" cy="10" r="9" fill="#e74c3c"/><text x="10" y="14.5" text-anchor="middle" font-size="12" fill="white" font-weight="bold">!</text></svg>
+        <span>Se detectaron <strong id="incCount">0</strong> incidencia(s) en la parcialidad actual. Revise los productos marcados a continuación.</span>
+      </div>
+      <div class="modal-hint">
+        Seleccione un producto y presione <kbd>F1</kbd> para <strong>reiniciar su conteo</strong>. El kardex será actualizado automáticamente.
+      </div>
+      <div class="table-wrapper" style="max-height:200px;margin-bottom:0">
+        <table id="incidenciasTable" class="inc-table">
+          <thead>
+            <tr>
+              <th style="width:46px">No.</th>
+              <th>Producto</th>
+              <th style="width:120px">SKU</th>
+              <th style="width:120px">Cant. Escaneada</th>
+              <th style="width:120px">Cant. Esperada</th>
+              <th style="width:110px">Incidencia</th>
+            </tr>
+          </thead>
+          <tbody id="incidenciasBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-reiniciar" onclick="reiniciarConteoDesdeModal()" title="F1">
+        <svg class="btn-svg" viewBox="0 0 16 16"><path d="M13 8A5 5 0 1 1 8 3" fill="none" stroke="#4a90c4" stroke-width="2" stroke-linecap="round"/><polyline points="13,3 13,8 8,8" fill="none" stroke="#4a90c4" stroke-width="2" stroke-linejoin="round"/></svg>
+        Reiniciar conteo (F1)
+      </button>
+      <button class="btn-modal-ok" onclick="cerrarModalIncidencias()">✔ Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================
+     MODAL: PEDIDO RECIBIDO COMPLETO
+     =================================================== -->
+<div class="modal-overlay" id="modalCompleto" style="display:none">
+  <div class="modal-window modal-window-sm">
+    <div class="modal-titlebar">
+      <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="7" fill="#4a90c4"/><text x="8" y="12" text-anchor="middle" font-size="10" fill="white" font-weight="bold">i</text></svg>
+      <span>Información</span>
+    </div>
+    <div class="modal-body modal-body-center">
+      <p class="modal-msg-lg">Pedido recibido completo.</p>
+      <div class="exodus-modal-logo">
+        <div class="exodus-chevron-wrap">
+          <svg viewBox="0 0 120 100" width="110" height="90">
+            <!-- Chevron gris watermark -->
+            <polygon points="60,5 115,95 60,68 5,95" fill="#d0d0d0" opacity="0.6"/>
+            <polygon points="60,20 100,90 60,66 20,90" fill="#b8b8b8" opacity="0.5"/>
+            <!-- Texto EXODUS ERP -->
+          </svg>
+        </div>
+        <div class="exodus-modal-brand">EXODUS ERP</div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-center">
+      <button class="btn-modal-ok" onclick="cerrarModalCompleto()">✔ Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================
+     MODAL: GUARDAR AVANCE
+     =================================================== -->
+<div class="modal-overlay" id="modalGuardar" style="display:none">
+  <div class="modal-window modal-window-sm">
+    <div class="modal-titlebar">
+      <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="7" fill="#4a90c4"/><text x="8" y="12" text-anchor="middle" font-size="10" fill="white" font-weight="bold">i</text></svg>
+      <span>Información</span>
+    </div>
+    <div class="modal-body modal-body-center">
+      <p class="modal-msg-lg">Avance guardado correctamente.</p>
+      <div class="exodus-modal-logo">
+        <div class="exodus-chevron-wrap">
+          <svg viewBox="0 0 120 100" width="110" height="90">
+            <polygon points="60,5 115,95 60,68 5,95" fill="#d0d0d0" opacity="0.6"/>
+            <polygon points="60,20 100,90 60,66 20,90" fill="#b8b8b8" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="exodus-modal-brand">EXODUS ERP</div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-center">
+      <button class="btn-modal-ok" onclick="document.getElementById('modalGuardar').style.display='none'">✔ Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toastMsg" class="toast" style="display:none"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
