@@ -172,7 +172,7 @@
               <th style="width:130px">Cantidad escaneada</th>
               <th style="width:115px">Tipo de producto</th>
               <th style="width:115px">Clave de posición</th>
-              <th style="width:115px">Incidencias</th>
+              <th class="col-incidencias" style="width:115px">Incidencias</th>
             </tr>
           </thead>
           <tbody id="tableBody">
@@ -196,6 +196,10 @@
             <svg class="btn-svg" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="1" fill="#4a90c4"/><rect x="5" y="2" width="6" height="5" rx="0" fill="white"/><rect x="4" y="9" width="8" height="4" rx="0" fill="white"/></svg>
             Guardar avance (F9)
           </button>
+          <button class="btn-action btn-reiniciar" id="btnReiniciarConteo" onclick="reiniciarConteo()" title="F1" disabled>
+            <svg class="btn-svg" viewBox="0 0 16 16"><path d="M13 8A5 5 0 1 1 8 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="13,3 13,8 8,8" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            Reiniciar conteo (F1)
+          </button>
         </div>
         <div class="bottom-right">
           <button class="btn-finish" id="btnTerminar" onclick="terminarParcialidad()" title="F7">
@@ -207,7 +211,7 @@
 
       <!-- Status bar -->
       <div class="status-bar" id="statusBar">
-        Último avance guardado: 14-03-2024 10:54:00 A.M. –
+        Último avance guardado: 14-03-2024 10:54:00 A.M. -
         <span class="status-warning">Restan 24:00 horas para cierre automático de traspaso de pedido.</span>
       </div>
 
@@ -229,40 +233,18 @@
      MODAL: INCIDENCIAS DETECTADAS
      =================================================== -->
 <div class="modal-overlay" id="modalIncidencias" style="display:none">
-  <div class="modal-window modal-window-lg">
+  <div class="modal-window modal-window-sm">
     <div class="modal-titlebar">
       <svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="7" fill="#4a90c4"/><text x="8" y="12" text-anchor="middle" font-size="10" fill="white" font-weight="bold">i</text></svg>
       <span>Información – Incidencias detectadas</span>
     </div>
-    <div class="modal-body">
-      <div class="modal-alert">
+    <div class="modal-body modal-body-center">
+      <div class="modal-alert" style="text-align:left">
         <svg viewBox="0 0 20 20" width="18" height="18" style="flex-shrink:0"><circle cx="10" cy="10" r="9" fill="#e74c3c"/><text x="10" y="14.5" text-anchor="middle" font-size="12" fill="white" font-weight="bold">!</text></svg>
-        <span>Se detectaron <strong id="incCount">0</strong> incidencia(s) en la parcialidad actual. Revise los productos marcados a continuación.</span>
-      </div>
-      <div class="modal-hint">
-        Seleccione un producto y presione <kbd>F1</kbd> para <strong>reiniciar su conteo</strong>. El kardex será actualizado automáticamente.
-      </div>
-      <div class="table-wrapper" style="max-height:200px;margin-bottom:0">
-        <table id="incidenciasTable" class="inc-table">
-          <thead>
-            <tr>
-              <th style="width:46px">No.</th>
-              <th>Producto</th>
-              <th style="width:120px">SKU</th>
-              <th style="width:120px">Cant. Escaneada</th>
-              <th style="width:120px">Cant. Esperada</th>
-              <th style="width:110px">Incidencia</th>
-            </tr>
-          </thead>
-          <tbody id="incidenciasBody"></tbody>
-        </table>
+        <span>Se detectaron <strong id="incCount">0</strong> incidencia(s) en la parcialidad actual.<br>Revise los productos en la tabla antes de finalizar.</span>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-modal-reiniciar" onclick="reiniciarConteoDesdeModal()" title="F1">
-        <svg class="btn-svg" viewBox="0 0 16 16"><path d="M13 8A5 5 0 1 1 8 3" fill="none" stroke="#4a90c4" stroke-width="2" stroke-linecap="round"/><polyline points="13,3 13,8 8,8" fill="none" stroke="#4a90c4" stroke-width="2" stroke-linejoin="round"/></svg>
-        Reiniciar conteo (F1)
-      </button>
+    <div class="modal-footer modal-footer-center">
       <button class="btn-modal-ok" onclick="cerrarModalIncidencias()">✔ Aceptar</button>
     </div>
   </div>

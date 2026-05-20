@@ -30,8 +30,8 @@ const state = {
       no: 2,
       producto: "ABRAZADERA ACERO INOXIDABLE MINI PHIRA N°4",
       sku: "0001000",
-      cantidadEscaneada: 0,
-      cantidadEsperada: 30,
+      cantidadEscaneada: 3,
+      cantidadEsperada: 2,
       tipoProd: "Mercancía",
       clavePosicion: "P1 T1 N2",
       barcode: "000000000000001000",
@@ -43,8 +43,8 @@ const state = {
       no: 2,
       producto: "ABRAZADERA ACERO INOXIDABLE MINI PHIRA N°4",
       sku: "0001000",
-      cantidadEscaneada: 0,
-      cantidadEsperada: 20,
+      cantidadEscaneada: 3,
+      cantidadEsperada: 2,
       tipoProd: "Mercancía",
       clavePosicion: "P1 T1 N3",
       barcode: "000000000000001000",
@@ -57,6 +57,7 @@ const state = {
 
 // ─── INICIALIZACIÓN ───────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
+  ocultarColumnaIncidencias();
   renderTable();
   selectRow(0);
   focusBarcode();
@@ -70,14 +71,10 @@ function focusBarcode() {
 
 // ─── TECLADO GLOBAL ───────────────────────────────────────
 function handleGlobalKey(e) {
-  const modalInc = document.getElementById("modalIncidencias");
-  const incAbierto = modalInc && modalInc.style.display !== "none";
-
   switch (e.key) {
     case "F1":
       e.preventDefault();
-      if (incAbierto) reiniciarConteoDesdeModal();
-      else reiniciarConteo();
+      reiniciarConteo();
       break;
     case "F5":
       e.preventDefault();
@@ -96,10 +93,10 @@ function handleGlobalKey(e) {
       guardarAvance();
       break;
     case "ArrowDown":
-      if (!incAbierto) { e.preventDefault(); navigateTable(1); }
+      e.preventDefault(); navigateTable(1);
       break;
     case "ArrowUp":
-      if (!incAbierto) { e.preventDefault(); navigateTable(-1); }
+      e.preventDefault(); navigateTable(-1);
       break;
   }
 }
@@ -165,7 +162,6 @@ function renderTable() {
     tr.dataset.idx = idx;
 
     const inc = calcularIncidencia(prod);
-
     tr.innerHTML = `
       <td style="text-align:center">${prod.no}</td>
       <td>${prod.producto}</td>
@@ -195,13 +191,8 @@ function calcularIncidencia(prod) {
 }
 
 function renderBadge(label) {
-  const map = {
-    "OK": "badge-ok",
-    "Pendiente": "badge-pend",
-    "Faltante": "badge-inc",
-    "Sobrante": "badge-inc",
-  };
-  return `<span class="${map[label] || 'badge-pend'}">${label}</span>`;
+  if (label === "OK") return `<span class="badge-ok">OK</span>`;
+  return `<span class="badge-inc">Incidencia</span>`;
 }
 
 // ─── SELECCIÓN DE FILA ────────────────────────────────────
@@ -214,6 +205,7 @@ function selectRow(idx) {
     rows[idx].scrollIntoView({ block: "nearest" });
     actualizarPanelProducto(state.productos[idx]);
   }
+  actualizarBtnReinicio();
 }
 
 function navigateTable(dir) {
@@ -249,65 +241,21 @@ function finalizarParcialidadFinal() {
     accion: "Cierre Final",
   });
 
-  state.postIncidencias = false;
-
-  // Restaurar botón
-  const btn = document.getElementById("btnTerminar");
-  const lbl = document.getElementById("btnTerminarLabel");
-  btn.classList.remove("btn-finish-final");
-  if (lbl) lbl.textContent = "Terminar Parcialidad (F7)";
-
   mostrarModalCompleto();
 }
 
 // ─── MODAL INCIDENCIAS ────────────────────────────────────
 function mostrarModalIncidencias(incidencias) {
-  // Guardar referencia a los índices reales de productos con incidencia
-  state._incidenciasActuales = incidencias;
-  state.selectedIncIdx = null;
-
   document.getElementById("incCount").textContent = incidencias.length;
-
-  const tbody = document.getElementById("incidenciasBody");
-  tbody.innerHTML = "";
-
-  incidencias.forEach((prod, i) => {
-    const prodIdx = state.productos.indexOf(prod);
-    const inc = calcularIncidencia(prod);
-    const tr = document.createElement("tr");
-    tr.dataset.prodIdx = prodIdx;
-    tr.dataset.incIdx = i;
-
-    tr.innerHTML = `
-      <td style="text-align:center">${prod.no}</td>
-      <td>${prod.producto}</td>
-      <td class="td-sku">${prod.sku}</td>
-      <td class="td-qty">${prod.cantidadEscaneada}</td>
-      <td class="td-qty">${prod.cantidadEsperada}</td>
-      <td class="td-incidencia">${renderBadge(inc)}</td>
-    `;
-
-    tr.addEventListener("click", () => {
-      selectIncRow(i, tr);
-      selectRow(prodIdx);
-    });
-
-    tbody.appendChild(tr);
-  });
-
   document.getElementById("modalIncidencias").style.display = "flex";
-}
-
-function selectIncRow(incIdx, tr) {
-  state.selectedIncIdx = incIdx;
-  document.querySelectorAll("#incidenciasBody tr").forEach((r) =>
-    r.classList.remove("inc-selected")
-  );
-  tr.classList.add("inc-selected");
 }
 
 function cerrarModalIncidencias() {
   document.getElementById("modalIncidencias").style.display = "none";
+
+  // Mostrar columna de incidencias en tabla principal para revisión
+  mostrarColumnaIncidencias();
+  renderTable();
 
   // Activar modo Finalizar Parcialidad Final
   state.postIncidencias = true;
@@ -316,29 +264,26 @@ function cerrarModalIncidencias() {
   btn.classList.add("btn-finish-final");
   if (lbl) lbl.textContent = "Finalizar Parcialidad Final (F7)";
 
+  actualizarBtnReinicio();
   focusBarcode();
 }
 
-// ─── REINICIAR CONTEO ─────────────────────────────────────
-function reiniciarConteoDesdeModal() {
-  if (state.selectedIncIdx === null) {
-    mostrarToast("⚠ Seleccione un producto en la lista de incidencias.", "warning");
-    return;
-  }
+// ─── COLUMNA INCIDENCIAS ──────────────────────────────────
+function ocultarColumnaIncidencias() {
+  document.getElementById("productTable").classList.add("hide-incidencias");
+  actualizarBtnReinicio();
+}
 
-  const prod = state._incidenciasActuales[state.selectedIncIdx];
-  if (!prod) return;
+function mostrarColumnaIncidencias() {
+  document.getElementById("productTable").classList.remove("hide-incidencias");
+  actualizarBtnReinicio();
+}
 
-  ejecutarReinicio(prod);
-
-  // Refrescar modal con incidencias restantes
-  const incidencias = state.productos.filter((p) => calcularIncidencia(p) !== "OK");
-  if (incidencias.length > 0) {
-    mostrarModalIncidencias(incidencias);
-  } else {
-    cerrarModalIncidencias();
-    mostrarToast("✔ Todas las incidencias resueltas.", "success");
-  }
+// ─── BOTÓN REINICIAR CONTEO ───────────────────────────────
+function actualizarBtnReinicio() {
+  const btn = document.getElementById("btnReiniciarConteo");
+  if (!btn) return;
+  btn.disabled = !(state.postIncidencias && state.selectedRow !== null);
 }
 
 function reiniciarConteo() {
@@ -383,7 +328,36 @@ function mostrarModalCompleto() {
 
 function cerrarModalCompleto() {
   document.getElementById("modalCompleto").style.display = "none";
+  resetearRecepcion();
   focusBarcode();
+}
+
+function resetearRecepcion() {
+  // Resetear cantidades escaneadas
+  state.productos.forEach((p) => { p.cantidadEscaneada = 0; });
+
+  // Resetear flags de estado
+  state.postIncidencias = false;
+  state.selectedRow = null;
+  state.sessionId += 1;
+
+  // Ocultar columna de incidencias
+  ocultarColumnaIncidencias();
+
+  // Restaurar botón
+  const btn = document.getElementById("btnTerminar");
+  const lbl = document.getElementById("btnTerminarLabel");
+  btn.classList.remove("btn-finish-final");
+  if (lbl) lbl.textContent = "Terminar Parcialidad (F7)";
+
+  // Limpiar panel de producto
+  document.getElementById("prodBarcode").value = "";
+  document.getElementById("prodDesc").value = "";
+  document.getElementById("prodLoc").value = "";
+  document.getElementById("prodPTN").value = "";
+
+  renderTable();
+  selectRow(0);
 }
 
 // ─── GUARDAR AVANCE ───────────────────────────────────────
