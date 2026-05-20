@@ -7,8 +7,8 @@
 const state = {
   sessionId: 1,
   selectedRow: null,
-  selectedIncIdx: null,   // índice en la lista de incidencias (no en productos)
   postIncidencias: false,
+  esperandoContenedor: false,
   kardex: [],
 
   // Catálogo de productos del pedido
@@ -101,6 +101,43 @@ function handleGlobalKey(e) {
   }
 }
 
+// ─── MODO CONTENEDOR ─────────────────────────────────────
+function activarModoContenedor() {
+  state.esperandoContenedor = true;
+
+  document.getElementById("labelBarcode").textContent = "Código de contenedor:";
+  document.getElementById("barcodeInput").placeholder = "Escanee el contenedor...";
+
+  document.querySelector(".info-panels").style.display    = "none";
+  document.querySelector(".table-wrapper").style.display  = "none";
+  document.querySelector(".bottom-bar").style.display     = "none";
+  document.querySelector(".status-bar").style.display     = "none";
+  document.getElementById("estadoContenedor").style.display = "flex";
+
+  focusBarcode();
+}
+
+function desactivarModoContenedor() {
+  state.esperandoContenedor = false;
+
+  document.getElementById("labelBarcode").textContent = "Código de barras:";
+  document.getElementById("barcodeInput").placeholder = "7 dígitos (producto) o 18 dígitos (producto+cantidad)";
+
+  document.querySelector(".info-panels").style.display    = "";
+  document.querySelector(".table-wrapper").style.display  = "";
+  document.querySelector(".bottom-bar").style.display     = "";
+  document.querySelector(".status-bar").style.display     = "";
+  document.getElementById("estadoContenedor").style.display = "none";
+
+  focusBarcode();
+}
+
+function procesarContenedor(code) {
+  desactivarModoContenedor();
+  mostrarToast(`✔ Contenedor ${code} cargado — pedido listo para recepción.`, "success");
+  selectRow(0);
+}
+
 // ─── ESCANEO ──────────────────────────────────────────────
 function handleBarcodeKey(e) {
   if (e.key === "Enter") {
@@ -110,19 +147,41 @@ function handleBarcodeKey(e) {
 }
 
 function procesarEscaneo(code) {
-  const codeLimpio = code.replace(/^0+/, "");
-  const prod = state.productos.find(
-    (p) => p.sku.replace(/^0+/, "") === codeLimpio || p.barcode === code
-  );
+  if (state.esperandoContenedor) { procesarContenedor(code); return; }
 
-  if (!prod) {
-    mostrarToast("⚠ Producto no encontrado en el pedido.", "warning");
-    document.getElementById("barcodeInput").value = "";
-    focusBarcode();
-    return;
+  let codigoProd, cantidad;
+
+  if (code.length === 18) {
+    if (!/^\d{18}$/.test(code)) {
+      mostrarToast("⚠ Código inválido: solo se permiten dígitos numéricos.", "warning");
+      limpiarBarcode(); return;
+    }
+    codigoProd = code.substring(0, 7);
+    cantidad   = parseInt(code.substring(7, 13), 10);
+    // posiciones 13–17 se ignoran (relleno)
+    if (cantidad === 0) {
+      mostrarToast("⚠ Código inválido: la cantidad no puede ser cero.", "warning");
+      limpiarBarcode(); return;
+    }
+  } else if (code.length === 7) {
+    if (!/^\d{7}$/.test(code)) {
+      mostrarToast("⚠ Código inválido: solo se permiten dígitos numéricos.", "warning");
+      limpiarBarcode(); return;
+    }
+    codigoProd = code;
+    cantidad   = 1;
+  } else {
+    mostrarToast(`⚠ Longitud inválida: se esperan 7 u 18 dígitos (recibidos: ${code.length}).`, "warning");
+    limpiarBarcode(); return;
   }
 
-  prod.cantidadEscaneada += 1;
+  const prod = state.productos.find((p) => p.sku === codigoProd);
+  if (!prod) {
+    mostrarToast("⚠ Producto no encontrado en el pedido.", "warning");
+    limpiarBarcode(); return;
+  }
+
+  prod.cantidadEscaneada += cantidad;
 
   state.kardex.push({
     fecha: now(),
@@ -130,18 +189,21 @@ function procesarEscaneo(code) {
     sku: prod.sku,
     producto: prod.producto,
     clavePosicion: prod.clavePosicion,
-    cantidad: 1,
-    accion: "Escaneo",
+    cantidad,
+    accion: code.length === 18 ? `Escaneo 18 dígitos (+${cantidad})` : "Escaneo 7 dígitos (+1)",
   });
 
   actualizarPanelProducto(prod);
   renderTable();
   selectRow(state.productos.indexOf(prod));
+  limpiarBarcode();
 
+  mostrarToast(`✔ ${prod.producto.substring(0, 38)} +${cantidad} uds.`, "success");
+}
+
+function limpiarBarcode() {
   document.getElementById("barcodeInput").value = "";
   focusBarcode();
-
-  mostrarToast(`✔ Escaneado: ${prod.producto.substring(0, 45)}`, "success");
 }
 
 // ─── PANEL DE PRODUCTO ────────────────────────────────────
@@ -341,10 +403,9 @@ function resetearRecepcion() {
   state.selectedRow = null;
   state.sessionId += 1;
 
-  // Ocultar columna de incidencias
+  // Ocultar columna de incidencias y actualizar botones
   ocultarColumnaIncidencias();
 
-  // Restaurar botón
   const btn = document.getElementById("btnTerminar");
   const lbl = document.getElementById("btnTerminarLabel");
   btn.classList.remove("btn-finish-final");
@@ -357,7 +418,7 @@ function resetearRecepcion() {
   document.getElementById("prodPTN").value = "";
 
   renderTable();
-  selectRow(0);
+  activarModoContenedor();
 }
 
 // ─── GUARDAR AVANCE ───────────────────────────────────────

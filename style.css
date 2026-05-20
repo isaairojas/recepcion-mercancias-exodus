@@ -669,6 +669,33 @@ tbody td:last-child { border-right: none; }
   border-color: #4a90c4;
 }
 
+/* =========================================================
+   ESTADO: ESPERANDO CONTENEDOR
+   ========================================================= */
+#estadoContenedor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid #c0c0c0;
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+
+.ec-titulo {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+}
+
+.ec-sub {
+  font-size: 11px;
+  color: #999;
+}
+
 /* Columna incidencias: oculta durante escaneo, visible tras revisar */
 #productTable.hide-incidencias .col-incidencias,
 #productTable.hide-incidencias td:last-child { display: none; }
